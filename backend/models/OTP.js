@@ -1,11 +1,9 @@
 const mongoose = require("mongoose");
 
 const OTPSchema = new mongoose.Schema({
-    email:{
-        type: String,
-    },
     phone: {
         type: String,
+        required: true,
     },
     otp: {
         type: String,
@@ -23,6 +21,9 @@ OTPSchema.pre('save', function(next) {
     }
     next();
 });
+
+// Add TTL index to automatically delete documents after 10 minutes
+OTPSchema.index({ createdAt: 1 }, { expireAfterSeconds: 600 }); // 600 seconds = 10 minutes
 
 module.exports = mongoose.model("OTP", OTPSchema);
 
