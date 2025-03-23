@@ -79,3 +79,48 @@ exports.updateProfile = async (req, res) => {
         });
     }
 }
+
+exports.changePassword = async (req, res) => {
+    try{
+        const {id} = req.user;
+        const {oldPassword,newPassword} = req.body;
+        if(!id) {
+            return res.status(400).json({
+                success: false,
+                message: "User ID is required",
+            });
+        }   
+        if(!oldPassword || !newPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "Old and new password are required",
+            });
+        }
+        const user = await User.findById(id);
+        if(!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+            });
+        }
+        const isMatch = await bcrypt.compare(oldPassword,user.password);
+        if(!isMatch) {
+            return res.status(401).json({
+                success: false,
+                message: "Invalid old password",
+            });
+        }
+        user.password = await bcrypt.hash(newPassword,10);
+        await user.save();
+        res.status(200).json({
+            success: true,
+            message: "Password updated successfully",
+        });
+    }catch(error){
+        res.status(500).json({
+            success: false,
+            message: "Internal Server Error",
+            error: error.message,
+        });
+    }
+}
