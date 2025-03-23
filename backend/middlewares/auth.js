@@ -168,36 +168,8 @@ const isAdmin = async (req, res, next) => {
   }
 };
 
-// Check if user account is verified
-const isVerified = async (req, res, next) => {
-  try {
-    if (!req.user) {
-      return res.status(401).json({
-        success: false,
-        message: "Authentication required. Please login.",
-      });
-    }
-    
-    if (!req.user.is_verified) {
-      return res.status(403).json({
-        success: false,
-        message: "Account not verified. Please verify your account first.",
-      });
-    }
-    next();
-  } catch (error) {
-    console.error("isVerified middleware error:", error.message);
-    return res.status(500).json({
-      success: false,
-      message: "Internal Server Error",
-      error: error.message,
-    });
-  }
-};
-
 module.exports = {
   auth,
-  isVerified,
   isCustomer,
   isVendor,
   isVerifiedVendor,
