@@ -9,6 +9,10 @@ const OTPSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    is_verified: {
+        type: Boolean,
+        default: false
+    }
 }, {
     timestamps: true,
     validateBeforeSave: true

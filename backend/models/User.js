@@ -12,6 +12,7 @@ const UserSchema = new mongoose.Schema(
     country: { type: String, trim: true },
     pincode: { type: String, trim: true },
     is_profile_completed: { type: Boolean, default: false },
+    is_email_verified: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
