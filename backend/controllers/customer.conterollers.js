@@ -36,3 +36,49 @@ exports.getProfile = async (req, res) => {
         });
     }
 }
+
+exports.updateProfile = async (req, res) => {
+    try{
+        const {id} = req.user;
+        if(!id) {
+            return res.status(400).json({
+                success: false,
+                message: "User ID is required",
+            });
+        }
+        
+        const {fullname,email,gender,city,state,country,pincode,phone,password} = req.body;
+        const fieldsToUpdate = {};
+        if(fullname) fieldsToUpdate.fullname = fullname;
+        if(email) fieldsToUpdate.email = email;
+        if(gender) fieldsToUpdate.gender = gender;
+        if(city) fieldsToUpdate.city = city;
+        if(state) fieldsToUpdate.state = state;
+        if(country) fieldsToUpdate.country = country;
+        if(pincode) fieldsToUpdate.pincode = pincode;
+        if(phone) fieldsToUpdate.phone = phone;
+        if(password){
+            const hashedPassword = await bcrypt.hash(password,10);
+            fieldsToUpdate.password = hashedPassword;
+        } 
+
+        const updatedUser = await User.findByIdAndUpdate(id,{$set: fieldsToUpdate},{new: true,runValidators: true}).select("-password");
+        if(!updatedUser) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+            });
+        }
+        res.status(200).json({
+            success: true,
+            message: "Profile updated successfully",
+            result: updatedUser,
+        });
+    }catch(error){
+        res.status(500).json({
+            success: false,
+            message: "Internal Server Error",
+            error: error.message,
+        });
+    }
+}
