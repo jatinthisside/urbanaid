@@ -124,3 +124,54 @@ exports.changePassword = async (req, res) => {
         });
     }
 }
+
+exports.deleteAccount = async (req, res) => {
+    try {
+        const { id } = req.user;
+        
+        // Check if password is provided for security
+        const { password } = req.body;
+        if (!password) {
+            return res.status(400).json({
+                success: false,
+                message: "Password is required to delete account",
+            });
+        }
+
+        // Find the user
+        const user = await User.findById(id);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+            });
+        }
+
+        // Verify password
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(401).json({
+                success: false,
+                message: "Invalid password",
+            });
+        }
+
+        // Delete user
+        await User.findByIdAndDelete(id);
+        
+        // Clear authentication cookie if using cookies
+        res.clearCookie("token");
+
+        return res.status(200).json({
+            success: true,
+            message: "Account deleted successfully",
+        });
+    } catch (error) {
+        console.error("Error deleting account:", error.message);
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error",
+            error: error.message,
+        });
+    }
+}

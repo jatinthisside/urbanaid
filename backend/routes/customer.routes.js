@@ -6,6 +6,6 @@ const { updateProfile, getProfile, changePassword, deleteAccount } = require("..
 router.get("/profile", auth, isCustomer, getProfile);
 router.put("/profile", auth, isCustomer, updateProfile);
 router.patch("/change-password", auth, isCustomer, changePassword);
-router.delete("/delete-account", auth, isCustomer, deleteAccount);
+router.delete("/profile", auth, isCustomer, deleteAccount);
 
 module.exports = router;
