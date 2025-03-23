@@ -222,8 +222,11 @@ exports.signin = async (req, res) => {
       });
     }
 
+    console.log("identifier : ",identifier);
+
     // Find the user
     const user = await User.findOne({ $or: [{ phone:identifier }, { email:identifier }] });
+  
     if (!user) {
       return res.status(404).json({
         success: false,
