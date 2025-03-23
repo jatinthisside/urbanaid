@@ -48,7 +48,7 @@ exports.updateProfile = async (req, res) => {
             });
         }
         
-        const {fullname,email,gender,city,state,country,pincode,phone,password} = req.body;
+        const {fullname,email,gender,city,state,country,pincode,phone} = req.body;
         const fieldsToUpdate = {};
         if(fullname) fieldsToUpdate.fullname = fullname;
         if(email) fieldsToUpdate.email = email;
@@ -58,10 +58,6 @@ exports.updateProfile = async (req, res) => {
         if(country) fieldsToUpdate.country = country;
         if(pincode) fieldsToUpdate.pincode = pincode;
         if(phone) fieldsToUpdate.phone = phone;
-        if(password){
-            const hashedPassword = await bcrypt.hash(password,10);
-            fieldsToUpdate.password = hashedPassword;
-        } 
 
         const updatedUser = await User.findByIdAndUpdate(id,{$set: fieldsToUpdate},{new: true,runValidators: true}).select("-password");
         if(!updatedUser) {
