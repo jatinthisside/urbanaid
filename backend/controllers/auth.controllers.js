@@ -122,10 +122,10 @@ exports.verifyOtp = async (req, res) => {
 
 exports.signup = async (req, res) => {
     try {
-        const {fullname, phone, email, gender, role, city, state, country, pincode, password} = req.body;
+        const {fullname, gender, phone, email, role, password} = req.body;
 
         // Check if all required fields are provided
-        if (!fullname || !phone || !email || !gender || !city || !state || !country || !pincode || !password) {
+        if (!fullname || !phone || !email || !gender || !password) {
           return res.status(403).json({
             success: false,
             message: "All Fields are required",
@@ -133,7 +133,7 @@ exports.signup = async (req, res) => {
         }
 
         // Check if user already exists
-        const existingUser = await User.findOne({ phone });
+        const existingUser = await User.findOne({ $or:[{phone},{email}] });
         if (existingUser) {
           return res.status(400).json({
             success: false,
@@ -160,7 +160,10 @@ exports.signup = async (req, res) => {
 
         // Hash the password
         const hashedPassword = await bcrypt.hash(password, 10);
-
+        const name_arr = fullname.split(" ");
+        const fname = name_arr[0];
+        const lname = name_arr[1];
+        const profile_pic = `https://ui-avatars.com/api/?name=${fname}+${lname}`;
         // Create the user
         const user = await User.create({
           fullname,
@@ -169,10 +172,7 @@ exports.signup = async (req, res) => {
           password: hashedPassword,
           role,
           gender,
-          city,
-          state,
-          country,
-          pincode,
+          profile_pic
         });
     
         // Delete the OTP document since signup is complete
@@ -257,7 +257,7 @@ exports.signin = async (req, res) => {
 
     // Set cookie with token
     res.cookie("token", token, {
-      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
     });

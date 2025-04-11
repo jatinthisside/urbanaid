@@ -39,40 +39,135 @@ exports.getProfile = async (req, res) => {
 }
 
 exports.updateProfile = async (req, res) => {
-    try{
+    try {
         const {id} = req.user;
-        if(!id) {
+
+        if (!id) {
             return res.status(400).json({
                 success: false,
                 message: "User ID is required",
             });
         }
         
-        const {fullname,email,gender,city,state,country,pincode,phone} = req.body;
-        const fieldsToUpdate = {};
-        if(fullname) fieldsToUpdate.fullname = fullname;
-        if(email) fieldsToUpdate.email = email;
-        if(gender) fieldsToUpdate.gender = gender;
-        if(city) fieldsToUpdate.city = city;
-        if(state) fieldsToUpdate.state = state;
-        if(country) fieldsToUpdate.country = country;
-        if(pincode) fieldsToUpdate.pincode = pincode;
-        if(phone) fieldsToUpdate.phone = phone;
-
-        const updatedUser = await User.findByIdAndUpdate(id,{$set: fieldsToUpdate},{new: true,runValidators: true}).select("-password");
-        if(!updatedUser) {
+        // Find current user to check for existing data
+        const currentUser = await User.findById(id);
+        if (!currentUser) {
             return res.status(404).json({
                 success: false,
                 message: "User not found",
             });
         }
-        res.status(200).json({
+
+        // Extract all possible fields from request body
+        const {
+            fullname,
+            email,
+            phone,
+            gender,
+            city,
+            state,
+            country,
+            pincode,
+        } = req.body;
+
+        // Validation
+        if (email && !/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email)) {
+            return res.status(400).json({
+                success: false,
+                message: "Please provide a valid email address",
+            });
+        }
+
+        if (phone && !/^\d{10}$/.test(phone)) {
+            return res.status(400).json({
+                success: false,
+                message: "Please provide a valid 10-digit phone number",
+            });
+        }
+
+        if (gender && !["male", "female", "other"].includes(gender.toLowerCase())) {
+            return res.status(400).json({
+                success: false,
+                message: "Gender must be one of: male, female, other",
+            });
+        }
+
+        if (pincode && !/^\d{6}$/.test(pincode)) {
+            return res.status(400).json({
+                success: false,
+                message: "Please provide a valid 6-digit pincode",
+            });
+        }
+
+        // Check if email or phone is being changed and if they're already in use
+        if (email && email !== currentUser.email) {
+            const emailExists = await User.findOne({ email, _id: { $ne: id } });
+            if (emailExists) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Email is already in use by another account",
+                });
+            }
+            // If changing email, reset email verification status
+            fieldsToUpdate.is_email_verified = false;
+        }
+
+        if (phone && phone !== currentUser.phone) {
+            const phoneExists = await User.findOne({ phone, _id: { $ne: id } });
+            if (phoneExists) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Phone number is already in use by another account",
+                });
+            }
+        }
+
+        // Build update object with only provided fields
+        const fieldsToUpdate = {};
+        if (fullname) fieldsToUpdate.fullname = fullname;
+        if (email) fieldsToUpdate.email = email;
+        if (phone) fieldsToUpdate.phone = phone;
+        if (gender) fieldsToUpdate.gender = gender.toLowerCase();
+        if (city) fieldsToUpdate.city = city;
+        if (state) fieldsToUpdate.state = state;
+        if (country) fieldsToUpdate.country = country;
+        if (pincode) fieldsToUpdate.pincode = pincode;
+        if (profile_pic) fieldsToUpdate.profile_pic = profile_pic;
+
+        // If no fields to update, return early
+        if (Object.keys(fieldsToUpdate).length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "No fields provided for update",
+            });
+        }
+
+        // Update user profile
+        const updatedUser = await User.findByIdAndUpdate(
+            id,
+            { $set: fieldsToUpdate },
+            { new: true, runValidators: true }
+        ).select("-password");
+
+        // Generate new profile picture URL if name changed but no custom profile pic provided
+        if (fullname && !profile_pic && fullname !== currentUser.fullname) {
+            const name_arr = fullname.split(" ");
+            const fname = name_arr[0];
+            const lname = name_arr[1] || "";
+            const new_profile_pic = `https://ui-avatars.com/api/?name=${fname}+${lname}`;
+            
+            updatedUser.profile_pic = new_profile_pic;
+            await updatedUser.save();
+        }
+
+        return res.status(200).json({
             success: true,
             message: "Profile updated successfully",
-            result: updatedUser,
+            data: updatedUser,
         });
-    }catch(error){
-        res.status(500).json({
+    } catch (error) {
+        console.error("Error updating profile:", error.message);
+        return res.status(500).json({
             success: false,
             message: "Internal Server Error",
             error: error.message,

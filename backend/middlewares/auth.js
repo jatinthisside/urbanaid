@@ -9,6 +9,8 @@ const auth = async (req, res, next) => {
       req.cookies.token || 
       req.header("Authorization")?.replace("Bearer ", "");
 
+      console.log("inside auth middleware");
+
     if (!token) {
       return res.status(401).json({
         success: false,
