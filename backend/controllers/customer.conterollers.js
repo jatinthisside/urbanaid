@@ -1,5 +1,6 @@
 const User = require("../models/User");
 const bcrypt = require("bcrypt");
+const { uploadFile, deleteFile } = require("../utils/fileUpload");
 
 exports.getProfile = async (req, res) => {
     try {
@@ -263,6 +264,74 @@ exports.deleteAccount = async (req, res) => {
         });
     } catch (error) {
         console.error("Error deleting account:", error.message);
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error",
+            error: error.message,
+        });
+    }
+}
+
+exports.uploadProfilePic = async (req, res) => {
+    try {
+        const { id } = req.user;
+        
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                message: "User ID is required",
+            });
+        }
+
+        // Check if file was uploaded
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                message: "No image file provided",
+            });
+        }
+
+        // Find the user to check if they exist and if they already have a profile picture
+        const user = await User.findById(id);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+            });
+        }
+
+        // Upload the new profile picture to Cloudinary
+        const uploadResult = await uploadFile(req.file.path, 'customer-profiles');
+        
+        if (!uploadResult.success) {
+            return res.status(500).json({
+                success: false,
+                message: "Failed to upload profile picture",
+                error: uploadResult.error
+            });
+        }
+
+        // If user had a previous Cloudinary profile picture, delete it
+        // Check if the old URL contains Cloudinary path (not UI Avatars)
+        if (user.profile_pic && user.profile_pic.includes('res.cloudinary.com') && user.profile_pic_id) {
+            await deleteFile(user.profile_pic_id);
+        }
+
+        // Update user profile with new profile picture URL
+        user.profile_pic = uploadResult.url;
+        user.profile_pic_id = uploadResult.public_id; // Store Cloudinary public_id for future deletion
+        
+        await user.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Profile picture updated successfully",
+            data: {
+                profile_pic: user.profile_pic
+            }
+        });
+    } catch (error) {
+        console.error("Error uploading profile picture:", error.message);
         return res.status(500).json({
             success: false,
             message: "Internal Server Error",
