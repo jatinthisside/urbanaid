@@ -6,6 +6,13 @@ const serviceSchema = new mongoose.Schema({
         trim:true,
         required:true,
     },
+    service_gallery: {
+        type: [String],
+    },
+    hourly_amount: {
+        type: Number,
+        required: true,
+    },
     about_service: {
         type:String,
         trim:true, 

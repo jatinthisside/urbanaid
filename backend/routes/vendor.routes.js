@@ -6,9 +6,13 @@ const upload = require("../middlewares/multer");
 
 console.log('inside vendor routes')
 
-router.get("/vendor/profile", auth, isVendor, getMyProfile);
-router.get("/vendor/profile/:id", auth, getProfile);
-router.post("/vendor/profile", auth, isVendor, upload.single('identity_proof'), setProfile);
+// Get profiles
+router.get("/profile", auth, isVendor, getMyProfile);
+router.get("/profile/:id", auth, getProfile);
+
+// Set up vendor profile (after verification)
+router.post("/setup-profile", auth, isVendor, setProfile);
+router.put("/update-profile", auth, isVendor, setProfile);
 
 module.exports = router;
 

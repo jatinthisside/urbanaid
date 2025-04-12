@@ -98,6 +98,34 @@ const isVendor = async (req, res, next) => {
   }
 };
 
+// Check if user's email is verified
+const isVerified = async (req, res, next) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication required. Please login.",
+      });
+    }
+
+    if (!req.user.is_email_verified) {
+      return res.status(403).json({
+        success: false,
+        message: "Email verification required. Please verify your email before proceeding.",
+      });
+    }
+
+    next();
+  } catch (error) {
+    console.error("isVerified middleware error:", error.message);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error.message,
+    });
+  }
+};
+
 // Check if vendor profile exists and is verified
 const isVerifiedVendor = async (req, res, next) => {
   try {
@@ -108,7 +136,7 @@ const isVerifiedVendor = async (req, res, next) => {
       });
     }
 
-    if (req.user.role !== "vendor" || req.user.role !== "Vendor") {
+    if (req.user.role !== "vendor" && req.user.role !== "Vendor") {
       return res.status(403).json({
         success: false,
         message: "Access denied. Only vendors can access this resource.",
@@ -174,6 +202,7 @@ module.exports = {
   auth,
   isCustomer,
   isVendor,
+  isVerified,
   isVerifiedVendor,
   isAdmin
 };
