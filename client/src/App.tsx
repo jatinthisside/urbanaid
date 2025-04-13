@@ -4,11 +4,9 @@ import { DesignSystemShowcase } from "./components/DesignSystemShowcase";
 
 export default function App() {
   return (
-    <div>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/design-system-showcase" element={<DesignSystemShowcase />} />
       </Routes>
-    </div>
   )
 }

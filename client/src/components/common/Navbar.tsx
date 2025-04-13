@@ -3,16 +3,49 @@ import PrimaryBtn from "./PrimaryBtn"
 import { IoPersonAddOutline } from "react-icons/io5";
 import { CgLogIn } from "react-icons/cg";
 import GhostBtn from "./GhostBtn";
+import { useEffect, useState } from "react";
 
 export default function Navbar() {
+  const [scrolled, setScrolled] = useState(false);
+  
+  useEffect(() => {
+    const handleScroll = () => {
+      // Check if page is scrolled
+      const isScrolled = window.scrollY > 20;
+      if (isScrolled !== scrolled) {
+        setScrolled(isScrolled);
+      }
+    };
+
+    // Add scroll event listener
+    window.addEventListener('scroll', handleScroll);
+    
+    // Initial check
+    handleScroll();
+    
+    // Remove event listener on cleanup
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [scrolled]);
+
   return (
-    <nav className="flex justify-between items-center fixed top-[3%] left-0 right-0 z-50 px-[10%] font-medium">
+    <nav 
+      className={`
+        w-[80%] flex justify-between items-center fixed z-50 left-[50%] translate-x-[-50%]
+        transition-all duration-300 py-i-10
+        ${scrolled 
+          ? 'top-0 bg-white shadow-sm py-i-10 my-i-4 rounded-b-lg' 
+          : 'top-5 bg-transparent'
+        }
+      `}
+    >
       {/* logo */}
-      <Link className="no-underline-hover" to="/">
+      <Link className="no-underline-hover px-i-10" to="/">
          <span className="text-body">Urbanaid<span className="text-accent">.</span></span>
       </Link>
       {/* links */}
-      <ul className="flex gap-8 no-underline-hover">
+      <ul className="flex gap-8 no-underline-hover font-medium">
         <li>
           <Link className="no-underline-hover" to="/">
             Home
@@ -35,7 +68,7 @@ export default function Navbar() {
         </li>
       </ul>
       {/* button */}
-      <div className="flex gap-4">
+      <div className="flex gap-4 px-i-10">
         <GhostBtn text="Login" icon={<CgLogIn />} />
         <PrimaryBtn text="Sign up" icon={<IoPersonAddOutline />} />
       </div>
