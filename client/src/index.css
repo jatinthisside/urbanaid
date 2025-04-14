@@ -100,6 +100,16 @@ body{
     margin-bottom: 16px !important;
 }
 
+.my-i-lg{
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+}
+
+.my-i-xl{
+    margin-top: 4rem;
+    margin-bottom: 4rem;
+}
+
 .py-i-lg{
     padding-top: 2rem !important;
     padding-bottom: 2rem !important;
@@ -157,6 +167,10 @@ li:before {
     margin-bottom: 3rem !important;
 }
 
+.pb-i-lg{
+    padding-bottom: 2rem;
+}
+
 a{
     text-decoration: none;
     color: inherit;
@@ -165,4 +179,8 @@ a{
 .footer-divider{
     border-top: 1px solid var(--accent);
     opacity: 0.5;
+}
+
+.border-card{
+    border: 2px solid black !important;
 }

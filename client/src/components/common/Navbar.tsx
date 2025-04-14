@@ -69,8 +69,8 @@ export default function Navbar() {
       </ul>
       {/* button */}
       <div className="flex gap-4 px-i-10">
-        <GhostBtn text="Login" icon={<CgLogIn />} />
-        <PrimaryBtn text="Sign up" icon={<IoPersonAddOutline />} />
+        <Link to="/signin"><GhostBtn text="Login" icon={<CgLogIn />} /></Link>
+        <Link to="/signup"><PrimaryBtn text="Sign up" icon={<IoPersonAddOutline />} /></Link>
       </div>
     </nav>
   )

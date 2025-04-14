@@ -9,7 +9,6 @@ import SubHeader from "@/components/common/SubHeader";
 import TopVendors from "@/components/Home/TopVendors";
 import PrimaryBtn from "@/components/common/PrimaryBtn";
 import { BsArrowRight } from "react-icons/bs";
-import Footer from "@/components/common/Footer";
 
 export default function Home() {
   return (
