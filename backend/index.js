@@ -30,11 +30,11 @@ if (!fs.existsSync(uploadsDir)) {
 connectToDB();
 
 // register routes
-app.use("/api/v1/auth", authRoutes);
-app.use("/api/v1/customer", customerRoutes);
-app.use("/api/v1/vendor", vendorRoutes);
-app.use("/api/v1/verification", verificationRoutes);
-app.use("/api/v1/services", serviceRoutes);
+app.use("/api/v1", authRoutes);
+app.use("/api/v1", customerRoutes);
+app.use("/api/v1", vendorRoutes);
+app.use("/api/v1", verificationRoutes);
+app.use("/api/v1", serviceRoutes);
 
 // Serve static files from public directory
 app.use(express.static(path.join(__dirname, 'public')));
