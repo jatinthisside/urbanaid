@@ -1,7 +1,9 @@
-export default function PrimaryBtn({icon, text}: {icon?: React.ReactNode, text: string}) {
+export default function PrimaryBtn({icon, text, className, clickHandler}: {icon?: React.ReactNode, text: string, className?: string, clickHandler?: () => void}) {
   return (
-    <button className="btn-primary flex items-center gap-1">
-      <span className="text-base font-semibold">{icon}</span>
+    <button onSubmit={clickHandler} className={`btn-primary flex items-center gap-1 ${className}`} onClick={clickHandler}>
+      {
+        icon && <span className="text-base font-semibold">{icon}</span>
+      }
       {text}
     </button>
   )

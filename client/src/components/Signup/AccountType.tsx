@@ -1,15 +1,11 @@
 import { GoPeople } from "react-icons/go";
 import { RiStore2Line } from "react-icons/ri";
 import AccountOption from "./AccountOption";
-import { useState } from "react";
 
-export default function AccountType() {
-  const [accountType, setAccountType] = useState<String>('customer');
+export default function AccountType({accountType, setAccountType}:any) {
   const toggleHandler=(e:any)=>{
     e.preventDefault();
-    console.log('event ->',e);
     const value = e.currentTarget.name;
-    console.log("value ->",value);
     setAccountType(value);
   }
   return (
