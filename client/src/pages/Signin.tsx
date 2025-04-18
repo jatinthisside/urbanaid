@@ -32,7 +32,6 @@ export default function Signin() {
     e.preventDefault();
     setIsLoading(true);
     const res = await signin({identifier,password});
-    console.log('signin res : ',res);
     setIsLoading(false);
     if(!res.data.success){
       toast.error(res.data.message);

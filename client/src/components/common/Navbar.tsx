@@ -6,13 +6,18 @@ import GhostBtn from "./GhostBtn";
 import { useEffect, useState } from "react";
 import { useAppSelector } from "@/store/hooks";
 import { User } from "@/store/slices/authSlice";
+import { signout } from "@/features/auth";
+import { useNavigate } from "react-router";
+import { useAppDispatch } from "@/store/hooks";
+import { toast } from 'sonner';
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
   const isLoggedIn = useAppSelector((state) => state.auth.isLoggedIn);
   const user = useAppSelector((state) => state.auth.user) as User | null;
-
-  console.log('navbar_user : ',user);
+  const navigate = useNavigate();
+  const dispatch = useAppDispatch();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -34,6 +39,21 @@ export default function Navbar() {
       window.removeEventListener('scroll', handleScroll);
     };
   }, [scrolled]);
+
+  const handleSignOut = async () => {
+    if (isSigningOut) return; // Prevent multiple clicks
+    
+    try {
+      setIsSigningOut(true);
+      await signout(dispatch);
+      toast.success("Signed out successfully");
+      navigate('/signin');
+    } catch (error) {
+      toast.error("Failed to sign out. Please try again.");
+    } finally {
+      setIsSigningOut(false);
+    }
+  };
 
   return (
     <nav 
@@ -78,8 +98,19 @@ export default function Navbar() {
         {
           isLoggedIn ? (
             <div className="flex gap-4 items-center">
-              <Link to="/signout"><GhostBtn text="Sign out" icon={<IoLogOutOutline />} /></Link> 
-              <Link to="/profile"><img src={user?.profile_pic} alt="profile" className="w-10 h-10 rounded-full" /></Link>
+              <GhostBtn 
+                text={isSigningOut ? "Signing out..." : "Sign out"} 
+                icon={<IoLogOutOutline />} 
+                clickHandler={handleSignOut}
+                disabled={isSigningOut}
+              />
+              <Link to="/profile">
+                <img 
+                  src={user?.profile_pic || 'https://via.placeholder.com/40'} 
+                  alt="profile" 
+                  className="w-10 h-10 rounded-full object-cover" 
+                />
+              </Link>
             </div>
           ) : (
             <div className="flex gap-4 items-center">

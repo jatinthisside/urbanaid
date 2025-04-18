@@ -37,7 +37,7 @@ export default function Signup() {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true); 
-    dispatch(setUser({email,phone,password,account_type: accountType,fullname}));
+    dispatch(setUser({email,phone,password,account_type: accountType as string,fullname}));
     const res = await sendOtp(phone);
     if(!res.data.success){
         toast.error("unable to send otp to phone number");

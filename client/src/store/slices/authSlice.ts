@@ -6,8 +6,9 @@ export interface User {
     fullname?: string;
     email?: string;
     phone?: string;
-    role?: string;
+    account_type?: string;
     profile_pic?: string;
+    password?: string;
 }
 
 // Define auth state interface
