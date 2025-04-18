@@ -1,13 +1,18 @@
 import { Link } from "react-router"
 import PrimaryBtn from "./PrimaryBtn"
-import { IoPersonAddOutline } from "react-icons/io5";
+import { IoLogOutOutline, IoPersonAddOutline } from "react-icons/io5";
 import { CgLogIn } from "react-icons/cg";
 import GhostBtn from "./GhostBtn";
 import { useEffect, useState } from "react";
+import { useAppSelector } from "@/store/hooks";
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
-  
+  const isLoggedIn = useAppSelector((state) => state.auth.isLoggedIn);
+  const user = useAppSelector((state) => state.auth.user);
+
+  console.log('user : ',user);
+
   useEffect(() => {
     const handleScroll = () => {
       // Check if page is scrolled
@@ -69,8 +74,19 @@ export default function Navbar() {
       </ul>
       {/* button */}
       <div className="flex gap-4 px-i-10">
-        <Link to="/signin"><GhostBtn text="Login" icon={<CgLogIn />} /></Link>
-        <Link to="/signup"><PrimaryBtn text="Sign up" icon={<IoPersonAddOutline />} /></Link>
+        {
+          isLoggedIn ? (
+            <div className="flex gap-4">
+              <Link to="/signout"><PrimaryBtn text="Sign out" icon={<IoLogOutOutline />} /></Link> 
+              {/* <Link to="/profile"><img src={user?.profile_pic} alt="profile" className="w-i-10 h-i-10 rounded-full" /></Link> */}
+            </div>
+          ) : (
+            <div className="flex gap-4">
+              <Link to="/signin"><GhostBtn text="Login" icon={<CgLogIn />} /></Link>
+              <Link to="/signup"><PrimaryBtn text="Sign up" icon={<IoPersonAddOutline />} /></Link>
+            </div>
+          )
+        }
       </div>
     </nav>
   )

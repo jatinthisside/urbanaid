@@ -4,8 +4,18 @@ import { DesignSystemShowcase } from "./components/DesignSystemShowcase";
 import Signin from "./pages/Signin";
 import Signup from "./pages/Signup";
 import Otp from "./pages/Otp";
+import { useEffect } from "react";
+import { fetchUserSession } from "./features/auth";
+import { useAppDispatch } from "./store/hooks";
 
 export default function App() {
+  const dispatch = useAppDispatch();
+  
+  useEffect(() => {
+    // Call the fetchUserSession function
+    dispatch(fetchUserSession());
+  }, [dispatch]);
+  
   return (
       <Routes>
         <Route path="/" element={<Home />} />

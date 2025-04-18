@@ -1,24 +1,48 @@
-import { useState } from 'react';
-import { Link } from 'react-router';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router';
 import { FiEye, FiEyeOff } from 'react-icons/fi';
 import { FcGoogle } from 'react-icons/fc';
 import Navbar from '../components/common/Navbar';
+import { useAppSelector } from '../store/hooks';
+import { signin } from '@/features/auth';
+import { toast } from 'sonner';
+import { setUser, setIsLoggedIn } from '@/store/slices/authSlice';
+import { useAppDispatch } from '@/store/hooks';
 
 export default function Signin() {
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  // Get auth state from Redux with typed selector
+  const isLoggedIn = useAppSelector((state) => state.auth.isLoggedIn);
+  const user = useAppSelector((state) => state.auth.user);
 
-  const handleSignIn = (e: React.FormEvent) => {
+  // Redirect if user is already logged in
+  useEffect(() => {
+    if (isLoggedIn && user) {
+      // Redirect to home or dashboard based on user role
+      navigate('/');
+    }
+  }, [isLoggedIn, user, navigate]);
+
+  const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
+    const res = await signin({identifier,password});
+    console.log('signin res : ',res);
+    setIsLoading(false);
+    if(!res.data.success){
+      toast.error(res.data.message);
       setIsLoading(false);
-      console.log('Sign in with:', email, password);
-      // Handle sign in logic here
-    }, 1500);
+      return;
+    }
+    toast.success(res.data.message);
+    dispatch(setUser(res.data.user));
+    dispatch(setIsLoggedIn(true));
+    navigate('/');
   };
 
   const handleGoogleSignIn = () => {
@@ -47,14 +71,14 @@ export default function Signin() {
           <form onSubmit={handleSignIn} className="p-i-lg flex flex-col gap-4">
             {/* Email Input */}
             <div className="flex flex-col gap-2">
-              <label htmlFor="email" className="text-sm font-medium text-slate-700">Email</label>
+              <label htmlFor="identifier" className="text-sm font-medium text-slate-700">Email or Phone Number</label>
               <div className="">
                 <input
-                  type="email"
-                  id="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="your.email@example.com"
+                  type="text"
+                  id="identifier"
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
+                  placeholder="your email or phone number.."
                   required
                   className="w-full py-i-10 pl-[40px] pr-i-10 border border-slate-300 rounded-md focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 px-i-10"
                 />

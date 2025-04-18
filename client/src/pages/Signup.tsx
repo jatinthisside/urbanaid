@@ -1,14 +1,13 @@
-import { useState } from "react";
-import { Link } from "react-router";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { FcGoogle } from "react-icons/fc";
 import Navbar from "../components/common/Navbar";
 import AccountType from "@/components/Signup/AccountType";
 // import { signup } from "@/features/auth";
 import { toast } from "sonner";
-import { useDispatch } from "react-redux";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { setUser } from "@/store/slices/authSlice";
-import { useNavigate } from "react-router";
 import { sendOtp } from "@/features/auth";
 
 export default function Signup() {
@@ -20,8 +19,20 @@ export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  
+  // Get auth state from Redux
+  const isLoggedIn = useAppSelector((state: any) => state.auth.isLoggedIn);
+  const user = useAppSelector((state: any) => state.auth.user);
+
+  // Redirect if user is already logged in
+  useEffect(() => {
+    if (isLoggedIn && user) {
+      // Redirect to home or dashboard
+      navigate('/');
+    }
+  }, [isLoggedIn, user, navigate]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();

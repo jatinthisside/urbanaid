@@ -56,7 +56,7 @@ export default function Otp() {
     
     setTimeout(() => {
       setIsVerifying(false);
-      navigate("/setup-profile");
+      navigate("/signin");
     }, 2000);
   };
 
