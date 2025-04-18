@@ -5,13 +5,14 @@ import { CgLogIn } from "react-icons/cg";
 import GhostBtn from "./GhostBtn";
 import { useEffect, useState } from "react";
 import { useAppSelector } from "@/store/hooks";
+import { User } from "@/store/slices/authSlice";
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const isLoggedIn = useAppSelector((state) => state.auth.isLoggedIn);
-  const user = useAppSelector((state) => state.auth.user);
+  const user = useAppSelector((state) => state.auth.user) as User | null;
 
-  console.log('user : ',user);
+  console.log('navbar_user : ',user);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -76,12 +77,12 @@ export default function Navbar() {
       <div className="flex gap-4 px-i-10">
         {
           isLoggedIn ? (
-            <div className="flex gap-4">
-              <Link to="/signout"><PrimaryBtn text="Sign out" icon={<IoLogOutOutline />} /></Link> 
-              {/* <Link to="/profile"><img src={user?.profile_pic} alt="profile" className="w-i-10 h-i-10 rounded-full" /></Link> */}
+            <div className="flex gap-4 items-center">
+              <Link to="/signout"><GhostBtn text="Sign out" icon={<IoLogOutOutline />} /></Link> 
+              <Link to="/profile"><img src={user?.profile_pic} alt="profile" className="w-10 h-10 rounded-full" /></Link>
             </div>
           ) : (
-            <div className="flex gap-4">
+            <div className="flex gap-4 items-center">
               <Link to="/signin"><GhostBtn text="Login" icon={<CgLogIn />} /></Link>
               <Link to="/signup"><PrimaryBtn text="Sign up" icon={<IoPersonAddOutline />} /></Link>
             </div>
