@@ -5,6 +5,31 @@ require("dotenv").config();
 const jwt = require("jsonwebtoken");
 const sendSms = require("../utils/sendSms");
 
+exports.decodeJwt = async(req,res)=>{
+  try {
+     const user = req.user;
+     if(!user){
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
+     }
+
+     return res.status(200).json({
+      success: true,
+      user,
+     });
+     
+  } catch (error) {
+    console.error("Error in getCurrentUser:", error.message);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error.message
+    });
+  }
+}
+
 // Generate a random 6-digit OTP
 const generateOTP = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -14,8 +39,6 @@ const generateOTP = () => {
 exports.sendOtp = async (req, res) => {
   try {
     const { phone } = req.body;
-
-    console.log("phone : ",phone);
 
     // Validate request body
     if (!phone || phone === "") {
@@ -49,7 +72,6 @@ exports.sendOtp = async (req, res) => {
 
     // Send OTP via Twilio
     const messageResponce = await sendSms(phone, `Your OTP for signup in Urban Aid is: ${otp}. it will be only Valid for 10 minutes.`);
-    console.log("messageResponce : ",messageResponce);
     // Send response
     return res.status(200).json({
       success: true,
@@ -69,7 +91,7 @@ exports.sendOtp = async (req, res) => {
 // Verify OTP controller
 exports.verifyOtp = async (req, res) => {
   try {
-    const { phone, otp } = req.body;
+    let { phone, otp } = req.body;
 
     // Validate request body
     if (!phone || !otp) {
@@ -78,6 +100,8 @@ exports.verifyOtp = async (req, res) => {
         message: "Phone number and OTP are required",
       });
     }
+
+    otp = String(otp);
 
     // Find the OTP document
     const otpDoc = await OTP.findOne({ phone });
@@ -122,15 +146,16 @@ exports.verifyOtp = async (req, res) => {
 
 exports.signup = async (req, res) => {
     try {
-        const {fullname, gender, phone, email, role, password} = req.body;
+        const {fullname, phone, email, account_type:role, password} = req.body;
 
         // Check if all required fields are provided
-        if (!fullname || !phone || !email || !gender || !password) {
+        if (!fullname || !phone || !email || !password || !role) {
           return res.status(403).json({
             success: false,
             message: "All Fields are required",
           });
         }
+
 
         // Check if user already exists
         const existingUser = await User.findOne({ $or:[{phone},{email}] });
@@ -164,6 +189,7 @@ exports.signup = async (req, res) => {
         const fname = name_arr[0];
         const lname = name_arr[1];
         const profile_pic = `https://ui-avatars.com/api/?name=${fname}+${lname}`;
+
         // Create the user
         const user = await User.create({
           fullname,
@@ -171,7 +197,6 @@ exports.signup = async (req, res) => {
           email,
           password: hashedPassword,
           role,
-          gender,
           profile_pic
         });
     
@@ -200,12 +225,10 @@ exports.signup = async (req, res) => {
 
 exports.signin = async (req, res) => {
   try {
-    const { phone,email, password } = req.body;
+    const { identifier, password } = req.body;
 
-    const identifier = phone || email;
-
-    if(identifier == email){
-      const userEmail = await User.findOne({ email });
+    if(identifier.includes("@")){
+      const userEmail = await User.findOne({ email:identifier });
       if(userEmail.is_email_verified == false){
         return res.status(400).json({
           success: false,
@@ -222,15 +245,13 @@ exports.signin = async (req, res) => {
       });
     }
 
-    console.log("identifier : ",identifier);
-
     // Find the user
     const user = await User.findOne({ $or: [{ phone:identifier }, { email:identifier }] });
   
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: "User not found. Please check your phone number or sign up.",
+        message: "User not found. Please check your credentials or sign up.",
       });
     }
 
@@ -239,7 +260,7 @@ exports.signin = async (req, res) => {
     if (!isPasswordValid) {
       return res.status(401).json({
         success: false,
-        message: "Invalid credentials. Please check your password.",
+        message: "Invalid credentials",
       });
     }
 
@@ -250,6 +271,8 @@ exports.signin = async (req, res) => {
         role: user.role,
         phone: user.phone,
         fullname: user.fullname,
+        email: user.email,
+        profile_pic: user.profile_pic,
       },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
@@ -260,6 +283,9 @@ exports.signin = async (req, res) => {
       expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      domain: process.env.NODE_ENV === "production" ? process.env.DOMAIN : undefined
     });
 
     // Return success response
@@ -272,6 +298,7 @@ exports.signin = async (req, res) => {
         email: user.email,
         phone: user.phone,
         role: user.role,
+        profile_pic: user.profile_pic,
       },
       message: "Signed in successfully",
     });
@@ -285,3 +312,27 @@ exports.signin = async (req, res) => {
   }
 }
 
+exports.signout = async (req, res) => {
+  try {
+    // Clear the token cookie with the same settings as when it was set
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      domain: process.env.NODE_ENV === "production" ? process.env.DOMAIN : undefined
+    });
+    
+    return res.status(200).json({
+      success: true,
+      message: "Signed out successfully",
+    });
+  } catch (error) {
+    console.error("Error in signout:", error.message);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error.message
+    });
+  }
+}

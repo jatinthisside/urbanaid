@@ -11,11 +11,22 @@ const vendorRoutes = require("./routes/vendor.routes.js");
 const verificationRoutes = require("./routes/verification.routes.js");
 const serviceRoutes = require("./routes/service.routes.js");
 const { cleanupUploadsFolder } = require("./utils/fileUpload.js");
+
 dotenv.config();
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: "http://localhost:5173",
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
+  exposedHeaders: ["Set-Cookie"],
+}));
+
+// Add pre-flight OPTIONS handling
+app.options('*', cors());
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -60,6 +71,6 @@ setInterval(() => {
   }
 }, CLEANUP_INTERVAL_MS);
 
-app.listen(process.env.PORT || 3001, () => {
-  console.log(`Server is running on port ${process.env.PORT || 3001}`);
+app.listen(process.env.PORT || 3000, () => {
+  console.log(`Server is running on port ${process.env.PORT || 3000}`);
 });
